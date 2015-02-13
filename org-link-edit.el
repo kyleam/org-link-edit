@@ -179,8 +179,10 @@ words."
 
 (defun org-link-edit--split-first-words (string n)
   "Split STRING into (N first words . other) cons cell.
-The N first word contains all text up to the next word.  If there
-number of words in STRING is fewer than N, 'other' is nil."
+'N first words' contains all text from the start of STRING up to
+the start of the N+1 word.  'other' includes the remaining text
+of STRING.  If the number of words in STRING is fewer than N,
+'other' is nil."
   (when (< n 0) (user-error "N cannot be negative"))
   (with-temp-buffer
     (insert string)
@@ -193,8 +195,9 @@ number of words in STRING is fewer than N, 'other' is nil."
 
 (defun org-link-edit--split-last-words (string n)
   "Split STRING into (other . N last words) cons cell.
-The N last words contains all leading text up to the previous
-word.  If there number of words in STRING is fewer than N,
+'N last words' contains all text from the end of STRING back to
+the end of the N+1 last word. 'other' includes the remaining text
+of STRING.  If the number of words in STRING is fewer than N,
 'other' is nil."
   (when (< n 0) (user-error "N cannot be negative"))
   (with-temp-buffer
