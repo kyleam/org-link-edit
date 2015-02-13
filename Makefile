@@ -11,7 +11,8 @@ autoloads: $(AUTOLOADS_FILE)
 
 $(AUTOLOADS_FILE): $(main_el)
 	@$(EMACS) --eval \
-	"(update-file-autoloads \"$(CURDIR)/$<\" nil \"$(CURDIR)/$@\")"
+	"(let (make-backup-files) \
+	  (update-file-autoloads \"$(CURDIR)/$<\" t \"$(CURDIR)/$@\"))"
 
 .PHONY: clean
 clean:
