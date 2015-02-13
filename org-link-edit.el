@@ -237,7 +237,7 @@ If N is negative, barf leading words instead of trailing words."
         (delete-region beg end)
         (insert (org-make-link-string link new-desc))
         (if (string= new-desc "")
-            ;; Two brackets are dropped when pass nil description is
+            ;; Two brackets are dropped when a nil description is
             ;; passed to `org-make-link-string'.
             (progn (goto-char (- end (+ 2 (length desc))))
                    (setq barfed (concat " " barfed)))
