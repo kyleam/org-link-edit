@@ -40,9 +40,9 @@
 ;; be used frequently enough to be worthy of a short, repeat-friendly
 ;; binding.  Using Hydra [1] provides a nice solution to this.  After
 ;; an initial key sequence, any of the commands will be repeatable
-;; with a single key.  (Plus, you get a nice interface that reminds
-;; you of the keys).  Below is one example of how you could configure
-;; this.
+;; with a single key.  (Plus, you get a nice interface that displays
+;; the key for each command.)  Below is one example of how you could
+;; configure this.
 ;;
 ;;     (define-key org-mode-map YOUR-KEY
 ;;       (defhydra hydra-org-link-edit ()
