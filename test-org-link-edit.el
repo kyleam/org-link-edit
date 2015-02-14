@@ -336,12 +336,13 @@ website is"
               (org-link-edit-forward-barf-word 1)
               (org-link-edit-forward-slurp-word 1)
               (buffer-string))))
-  (string= "Here is \[\[http://orgmode.org/\]\[Org's\]\] website"
-           (org-test-with-temp-text
-               "Here is <point>\[\[http://orgmode.org/\]\[Org's\]\] website"
-             (org-link-edit-forward-slurp-word 1)
-             (org-link-edit-forward-barf-word 1)
-             (buffer-string)))
+  (should
+   (string= "Here is \[\[http://orgmode.org/\]\] Org's website"
+            (org-test-with-temp-text
+                "Here is <point>\[\[http://orgmode.org/\]\] Org's website"
+              (org-link-edit-forward-slurp-word 1)
+              (org-link-edit-forward-barf-word 1)
+              (buffer-string))))
   (should
    (string= "Here is \[\[http://orgmode.org/\]\[Org's\]\] website"
             (org-test-with-temp-text

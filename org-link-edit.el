@@ -187,11 +187,12 @@ of STRING.  If the number of words in STRING is fewer than N,
   (with-temp-buffer
     (insert string)
     (goto-char (point-min))
-    (let ((within-bound (forward-word n)))
-      (skip-syntax-forward "^\w")
-      (cons (buffer-substring 1 (point))
-            (and within-bound
-                 (buffer-substring (point) (point-max)))))))
+    (with-syntax-table org-mode-syntax-table
+      (let ((within-bound (forward-word n)))
+        (skip-syntax-forward "^w")
+        (cons (buffer-substring 1 (point))
+              (and within-bound
+                   (buffer-substring (point) (point-max))))))))
 
 (defun org-link-edit--split-last-words (string n)
   "Split STRING into (other . N last words) cons cell.
@@ -203,11 +204,12 @@ of STRING.  If the number of words in STRING is fewer than N,
   (with-temp-buffer
     (insert string)
     (goto-char (point-max))
-    (let ((within-bound (forward-word (- n))))
-      (skip-syntax-backward "^\w")
-      (cons (and within-bound
-                 (buffer-substring 1 (point)))
-            (buffer-substring (point) (point-max))))))
+    (with-syntax-table org-mode-syntax-table
+      (let ((within-bound (forward-word (- n))))
+        (skip-syntax-backward "^w")
+        (cons (and within-bound
+                   (buffer-substring 1 (point)))
+              (buffer-substring (point) (point-max)))))))
 
 ;;;###autoload
 (defun org-link-edit-forward-barf-word (&optional n)
