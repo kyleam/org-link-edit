@@ -318,8 +318,13 @@ website is"
 
 ;;; Slurp and Barf round trip
 ;;
-;; Slurping and barfing should round trip unless there are new lines
-;; in the slurped string, which slurping replaces with spaces.
+;; Slurping and then barfing in the same direction, and vice versa,
+;; usually result in the original link stage.  This is not true in the
+;; following cases.
+;; - The slurped string contains one or more newlines.
+;; - When slurping into a link with an empty description, the slurped
+;;   string is separated from a link by whitespace other than a single
+;;   space.
 
 (ert-deftest test-org-link-edit/slurp-barf-round-trip ()
   "Test `org-link-edit-forward-barf-word' and
@@ -350,6 +355,24 @@ website is"
                 "Here is <point>\[\[http://orgmode.org/\]\[Org's\]\] website"
               (org-link-edit-backward-slurp-word 1)
               (org-link-edit-backward-barf-word 1)
+              (buffer-string))))
+  ;; Failed round trip because of newline.
+  (should
+   (string= "Here is \[\[http://orgmode.org/\]\[Org's\]\] website"
+            (org-test-with-temp-text
+                "Here is <point>\[\[http://orgmode.org/\]\[Org's\]\]
+website"
+              (org-link-edit-forward-slurp-word 1)
+              (org-link-edit-forward-barf-word 1)
+              (buffer-string))))
+  ;; Failed round trip because of empty description and more than one
+  ;; whitespace.
+  (should
+   (string= "Here is \[\[http://orgmode.org/\]\] website"
+            (org-test-with-temp-text
+                "Here is <point>\[\[http://orgmode.org/\]\]    website"
+              (org-link-edit-forward-slurp-word 1)
+              (org-link-edit-forward-barf-word 1)
               (buffer-string)))))
 
 
