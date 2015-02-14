@@ -4,7 +4,7 @@ main_el :=  $(name).el
 main_elc =  $(main_el)c
 AUTOLOADS_FILE := $(name)-autoloads.el
 
-all: $(main_elc)
+all: elc autoloads
 
 .PHONY: autoloads
 autoloads: $(AUTOLOADS_FILE)
@@ -18,11 +18,16 @@ $(AUTOLOADS_FILE): $(main_el)
 clean:
 	$(RM) $(main_elc) $(AUTOLOADS_FILE)
 
+.PHONY: elc
+elc: $(main_elc)
+
 .PHONY: help
 help:
-	@printf "\nTargets:\n\n"
-	@printf "  all                Byte compile $(main_el).\n"
+	@printf "\nMain targets:\n\n"
+	@printf "  all                Byte compile and generate autoloads.\n"
 	@printf "  autoloads          Generate $(AUTOLOADS_FILE).\n"
+	@printf "  elc                Byte compile $(main_el).\n"
+	@printf "\nOther:\n\n"
 	@printf "  clean              Remove generated files.\n"
 	@printf "  help               Print this message.\n"
 	@printf "  test               Run tests.\n"
