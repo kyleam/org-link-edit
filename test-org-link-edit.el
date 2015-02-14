@@ -97,6 +97,14 @@ otherwise place the point at the beginning of the inserted text."
 website is"
       (org-link-edit-forward-slurp-word 1)
       (buffer-string))))
+  ;; Slurp word that has no whitespace.
+  (should
+   (string=
+    "\[\[http://orgmode.org/\]\[website\]\]"
+    (org-test-with-temp-text
+        "\[\[http://orgmode.org/\]\]website"
+     (org-link-edit-forward-slurp-word 1)
+     (buffer-string))))
   ;; Slurp beyond the number of present words.
   (should-error
    (org-test-with-temp-text
@@ -156,6 +164,14 @@ website is"
 <point>\[\[http://orgmode.org/\]\[Org's website\]\]"
       (org-link-edit-backward-slurp-word 1)
       (buffer-string))))
+  ;; Slurp word that has no whitespace.
+  (should
+   (string=
+    "Here \[\[http://orgmode.org/\]\[is\]\] Org's website"
+    (org-test-with-temp-text
+     "Here is<point>\[\[http://orgmode.org/\]\] Org's website"
+     (org-link-edit-backward-slurp-word 1)
+     (buffer-string))))
   ;; Slurp beyond the number of present words.
   (should-error
    (org-test-with-temp-text
