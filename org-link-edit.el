@@ -29,10 +29,10 @@
 ;; There are four commands, all which operate when point is on an Org
 ;; link.
 ;;
-;; - org-link-edit-forward-slurp-word
-;; - org-link-edit-backward-slurp-word
-;; - org-link-edit-forward-barf-word
-;; - org-link-edit-backward-barf-word
+;; - org-link-edit-forward-slurp
+;; - org-link-edit-backward-slurp
+;; - org-link-edit-forward-barf
+;; - org-link-edit-backward-barf
 ;;
 ;; Org Link Edit doesn't bind these commands to any keys.  Finding
 ;; good keys for these commands is difficult because, while it's
@@ -47,10 +47,10 @@
 ;;     (define-key org-mode-map YOUR-KEY
 ;;       (defhydra hydra-org-link-edit ()
 ;;         "Org Link Edit"
-;;         ("j" org-link-edit-forward-slurp-word "forward slurp")
-;;         ("k" org-link-edit-forward-barf-word "forward barf")
-;;         ("u" org-link-edit-backward-slurp-word "backward slurp")
-;;         ("i" org-link-edit-backward-barf-word "backward barf")
+;;         ("j" org-link-edit-forward-slurp "forward slurp")
+;;         ("k" org-link-edit-forward-barf "forward barf")
+;;         ("u" org-link-edit-backward-slurp "backward slurp")
+;;         ("i" org-link-edit-backward-barf "backward barf")
 ;;         ("q" nil "cancel")))
 ;;
 ;; [1] https://github.com/abo-abo/hydra
@@ -96,9 +96,35 @@ The list includes
        (t
         (error "What am I looking at?"))))))
 
+(defun org-link-edit--forward-blob (n &optional no-punctuation)
+  "Move forward N blobs (backward if N is negative).
+
+A block of non-whitespace characters is a blob.  If
+NO-PUNCTUATION is non-nil, trailing punctuation characters are
+not considered part of the blob when going in the forward
+direction.
+
+If the edge of the buffer is reached before completing the
+movement, return nil.  Otherwise, return t."
+  (let* ((forward-p (> n 0))
+         (nblobs (abs n))
+         (skip-func (if forward-p 'skip-syntax-forward 'skip-syntax-backward))
+         skip-func-retval)
+    (while (/= nblobs 0)
+      (funcall skip-func " ")
+      (setq skip-func-retval (funcall skip-func "^ "))
+      (setq nblobs (1- nblobs)))
+    (when (and forward-p no-punctuation)
+      (let ((punc-tail-offset (save-excursion (skip-syntax-backward "."))))
+        ;; Don't consider trailing punctuation as part of the blob
+        ;; unless the whole blob consists of punctuation.
+        (unless (= skip-func-retval (- punc-tail-offset))
+          (goto-char (+ (point) punc-tail-offset)))))
+    (/= skip-func-retval 0)))
+
 ;;;###autoload
-(defun org-link-edit-forward-slurp-word (&optional n)
-  "Slurp N trailing words into link's description.
+(defun org-link-edit-forward-slurp (&optional n)
+  "Slurp N trailing blobs into link's description.
 
   The \[\[http://orgmode.org/\]\[Org mode\]\] site
 
@@ -107,22 +133,26 @@ The list includes
 
   The \[\[http://orgmode.org/\]\[Org mode site\]\]
 
+A blob is a block of non-whitespace characters.  When slurping
+forward, trailing punctuation characters are not considered part
+of a blob.
+
 After slurping, return the slurped text and move point to the
 beginning of the link.
 
-If N is negative, slurp leading words instead of trailing words."
+If N is negative, slurp leading blobs instead of trailing blobs."
   (interactive "p")
   (setq n (or n 1))
   (cond
    ((= n 0))
    ((< n 0)
-    (org-link-edit-backward-slurp-word (- n)))
+    (org-link-edit-backward-slurp (- n)))
    (t
     (cl-multiple-value-bind (beg end link desc) (org-link-edit--get-link-data)
       (goto-char (save-excursion
                    (goto-char end)
-                   (or (forward-word n)
-                       (user-error "Not enough words after the link"))
+                   (or (org-link-edit--forward-blob n 'no-punctuation)
+                       (user-error "Not enough blobs after the link"))
                    (point)))
       (let ((slurped (buffer-substring-no-properties end (point))))
         (setq slurped (replace-regexp-in-string "\n" " " slurped))
@@ -137,8 +167,8 @@ If N is negative, slurp leading words instead of trailing words."
         slurped)))))
 
 ;;;###autoload
-(defun org-link-edit-backward-slurp-word (&optional n)
-  "Slurp N leading words into link's description.
+(defun org-link-edit-backward-slurp (&optional n)
+  "Slurp N leading blobs into link's description.
 
   The \[\[http://orgmode.org/\]\[Org mode\]\] site
 
@@ -147,23 +177,24 @@ If N is negative, slurp leading words instead of trailing words."
 
   \[\[http://orgmode.org/\]\[The Org mode\]\] site
 
+A blob is a block of non-whitespace characters.
+
 After slurping, return the slurped text and move point to the
 beginning of the link.
 
-If N is negative, slurp trailing words instead of leading
-words."
+If N is negative, slurp trailing blobs instead of leading blobs."
   (interactive "p")
   (setq n (or n 1))
   (cond
    ((= n 0))
    ((< n 0)
-    (org-link-edit-forward-slurp-word (- n)))
+    (org-link-edit-forward-slurp (- n)))
    (t
     (cl-multiple-value-bind (beg end link desc) (org-link-edit--get-link-data)
       (goto-char (save-excursion
                    (goto-char beg)
-                   (or (forward-word (- n))
-                       (user-error "Not enough words before the link"))
+                   (or (org-link-edit--forward-blob (- n))
+                       (user-error "Not enough blobs before the link"))
                    (point)))
       (let ((slurped (buffer-substring-no-properties (point) beg)))
         (when (and (= (length desc) 0)
@@ -177,43 +208,43 @@ words."
         (goto-char beg)
         slurped)))))
 
-(defun org-link-edit--split-first-words (string n)
-  "Split STRING into (N first words . other) cons cell.
-'N first words' contains all text from the start of STRING up to
-the start of the N+1 word.  'other' includes the remaining text
-of STRING.  If the number of words in STRING is fewer than N,
+(defun org-link-edit--split-first-blobs (string n)
+  "Split STRING into (N first blobs . other) cons cell.
+'N first blobs' contains all text from the start of STRING up to
+the start of the N+1 blob.  'other' includes the remaining text
+of STRING.  If the number of blobs in STRING is fewer than N,
 'other' is nil."
   (when (< n 0) (user-error "N cannot be negative"))
   (with-temp-buffer
     (insert string)
     (goto-char (point-min))
     (with-syntax-table org-mode-syntax-table
-      (let ((within-bound (forward-word n)))
-        (skip-syntax-forward "^w")
+      (let ((within-bound (org-link-edit--forward-blob n)))
+        (skip-syntax-forward " ")
         (cons (buffer-substring 1 (point))
               (and within-bound
                    (buffer-substring (point) (point-max))))))))
 
-(defun org-link-edit--split-last-words (string n)
-  "Split STRING into (other . N last words) cons cell.
-'N last words' contains all text from the end of STRING back to
-the end of the N+1 last word. 'other' includes the remaining text
-of STRING.  If the number of words in STRING is fewer than N,
-'other' is nil."
+(defun org-link-edit--split-last-blobs (string n)
+  "Split STRING into (other . N last blobs) cons cell.
+'N last blobs' contains all text from the end of STRING back to
+the end of the N+1 last blob.  'other' includes the remaining
+text of STRING.  If the number of blobs in STRING is fewer than
+N, 'other' is nil."
   (when (< n 0) (user-error "N cannot be negative"))
   (with-temp-buffer
     (insert string)
     (goto-char (point-max))
     (with-syntax-table org-mode-syntax-table
-      (let ((within-bound (forward-word (- n))))
-        (skip-syntax-backward "^w")
+      (let ((within-bound (org-link-edit--forward-blob (- n))))
+        (skip-syntax-backward " ")
         (cons (and within-bound
                    (buffer-substring 1 (point)))
               (buffer-substring (point) (point-max)))))))
 
 ;;;###autoload
-(defun org-link-edit-forward-barf-word (&optional n)
-  "Barf N trailing words from link's description.
+(defun org-link-edit-forward-barf (&optional n)
+  "Barf N trailing blobs from link's description.
 
   The \[\[http://orgmode.org/\]\[Org mode\]\] site
 
@@ -222,23 +253,25 @@ of STRING.  If the number of words in STRING is fewer than N,
 
   The \[\[http://orgmode.org/\]\[Org\]\] mode site
 
+A blob is a block of non-whitespace characters.
+
 After barfing, return the barfed text and move point to the
 beginning of the link.
 
-If N is negative, barf leading words instead of trailing words."
+If N is negative, barf leading blobs instead of trailing blobs."
   (interactive "p")
   (setq n (or n 1))
   (cond
    ((= n 0))
    ((< n 0)
-    (org-link-edit-backward-barf-word (- n)))
+    (org-link-edit-backward-barf (- n)))
    (t
     (cl-multiple-value-bind (beg end link desc) (org-link-edit--get-link-data)
       (when (= (length desc) 0)
         (user-error "Link has no description"))
-      (pcase-let ((`(,new-desc . ,barfed) (org-link-edit--split-last-words
+      (pcase-let ((`(,new-desc . ,barfed) (org-link-edit--split-last-blobs
                                            desc n)))
-        (unless new-desc (user-error "Not enough words in description"))
+        (unless new-desc (user-error "Not enough blobs in description"))
         (delete-region beg end)
         (insert (org-make-link-string link new-desc))
         (if (string= new-desc "")
@@ -252,8 +285,8 @@ If N is negative, barf leading words instead of trailing words."
         barfed)))))
 
 ;;;###autoload
-(defun org-link-edit-backward-barf-word (&optional n)
-  "Barf N leading words from link's description.
+(defun org-link-edit-backward-barf (&optional n)
+  "Barf N leading blobs from link's description.
 
   The \[\[http://orgmode.org/\]\[Org mode\]\] site
 
@@ -262,23 +295,25 @@ If N is negative, barf leading words instead of trailing words."
 
   The Org \[\[http://orgmode.org/\]\[mode\]\] site
 
+A blob is a block of non-whitespace characters.
+
 After barfing, return the barfed text and move point to the
 beginning of the link.
 
-If N is negative, barf trailing words instead of leading words."
+If N is negative, barf trailing blobs instead of leading blobs."
   (interactive "p")
   (setq n (or n 1))
   (cond
    ((= n 0))
    ((< n 0)
-    (org-link-edit-forward-barf-word (- n)))
+    (org-link-edit-forward-barf (- n)))
    (t
     (cl-multiple-value-bind (beg end link desc) (org-link-edit--get-link-data)
       (when (= (length desc) 0)
         (user-error "Link has no description"))
-      (pcase-let ((`(,barfed . ,new-desc) (org-link-edit--split-first-words
+      (pcase-let ((`(,barfed . ,new-desc) (org-link-edit--split-first-blobs
                                            desc n)))
-        (unless new-desc (user-error "Not enough words in description"))
+        (unless new-desc (user-error "Not enough blobs in description"))
         (delete-region beg end)
         (insert (org-make-link-string link new-desc))
         (when (string= new-desc "")
