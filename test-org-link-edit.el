@@ -119,16 +119,16 @@ website is"
     "\[\[http://orgmode.org/\]\[website\]\]"
     (org-test-with-temp-text
         "\[\[http://orgmode.org/\]\]website"
-     (org-link-edit-forward-slurp 1)
-     (buffer-string))))
+      (org-link-edit-forward-slurp 1)
+      (buffer-string))))
   ;; Slurp blob that isn't separated from link by whitespace.
   (should
    (string=
     "\[\[http://orgmode.org/\]\[-website\]\]"
     (org-test-with-temp-text
         "\[\[http://orgmode.org/\]\]-website"
-     (org-link-edit-forward-slurp 1)
-     (buffer-string))))
+      (org-link-edit-forward-slurp 1)
+      (buffer-string))))
   ;; Slurp beyond the number of present blobs.
   (should-error
    (org-test-with-temp-text
@@ -209,17 +209,17 @@ website is"
    (string=
     "Here \[\[http://orgmode.org/\]\[is\]\] Org's website"
     (org-test-with-temp-text
-     "Here is<point>\[\[http://orgmode.org/\]\] Org's website"
-     (org-link-edit-backward-slurp 1)
-     (buffer-string))))
+        "Here is<point>\[\[http://orgmode.org/\]\] Org's website"
+      (org-link-edit-backward-slurp 1)
+      (buffer-string))))
   ;; Slurp blob that isn't separated from link by whitespace.
   (should
    (string=
     "Here \[\[http://orgmode.org/\]\[is-\]\] Org's website"
     (org-test-with-temp-text
-     "Here is-<point>\[\[http://orgmode.org/\]\] Org's website"
-     (org-link-edit-backward-slurp 1)
-     (buffer-string))))
+        "Here is-<point>\[\[http://orgmode.org/\]\] Org's website"
+      (org-link-edit-backward-slurp 1)
+      (buffer-string))))
   ;; Slurp beyond the number of present blobs.
   (should-error
    (org-test-with-temp-text
@@ -461,7 +461,7 @@ website"
     (should-not desc))
   ;; Bracket link
   (cl-multiple-value-bind (beg end link desc)
-      (org-test-with-temp-text  "\[\[http://orgmode.org/\]\[org\]\]"
+      (org-test-with-temp-text "\[\[http://orgmode.org/\]\[org\]\]"
         (org-link-edit--get-link-data))
     (should (string= link "http://orgmode.org/"))
     (should (string= desc "org"))))
