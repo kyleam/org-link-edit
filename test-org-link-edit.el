@@ -113,6 +113,15 @@ otherwise place the point at the beginning of the inserted text."
 website is"
       (org-link-edit-forward-slurp 1)
       (buffer-string))))
+  ;; Collapse stretches of new lines.
+  (should
+   (string=
+    "\[\[http://orgmode.org/\]\[Org's website is\]\]"
+    (org-test-with-temp-text
+        "\[\[http://orgmode.org/\]\[Org's\]\]
+\n\nwebsite\n\n\nis"
+      (org-link-edit-forward-slurp 2)
+      (buffer-string))))
   ;; Slurp blob that has no whitespace.
   (should
    (string=
@@ -203,6 +212,15 @@ website is"
         "Here is
 <point>\[\[http://orgmode.org/\]\[Org's website\]\]"
       (org-link-edit-backward-slurp 1)
+      (buffer-string))))
+  ;; Collapse stretches of new lines.
+  (should
+   (string=
+    "\[\[http://orgmode.org/\]\[Here is Org's website\]\]"
+    (org-test-with-temp-text
+        "Here\n\nis\n\n\n
+<point>\[\[http://orgmode.org/\]\[Org's website\]\]"
+      (org-link-edit-backward-slurp 2)
       (buffer-string))))
   ;; Slurp blob that has no whitespace.
   (should
