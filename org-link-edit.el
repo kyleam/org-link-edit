@@ -5,7 +5,7 @@
 ;; Author:  Kyle Meyer <kyle@kyleam.com>
 ;; URL: https://github.com/kyleam/org-link-edit
 ;; Keywords: convenience
-;; Version: 0.1.0
+;; Version: 1.0.0
 ;; Package-Requires: ((cl-lib "0.5") (org "8.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
