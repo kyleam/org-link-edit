@@ -1,4 +1,4 @@
-;;; org-link-edit.el --- Slurp and barf with Org links
+;;; org-link-edit.el --- Slurp and barf with Org links  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015 Kyle Meyer <kyle@kyleam.com>
 
