@@ -447,6 +447,14 @@ website is"
               (org-link-edit-backward-slurp 1)
               (org-link-edit-backward-barf 1)
               (buffer-string))))
+  ;; Handle escaped link components.
+  (should
+   (string= "Here is \[\[file:t.org::some%20text\]\[Org\]\] file"
+            (org-test-with-temp-text
+                "Here is <point>\[\[file:t.org::some%20text\]\[Org\]\] file"
+              (org-link-edit-forward-slurp 1)
+              (org-link-edit-forward-barf 1)
+              (buffer-string))))
   ;; Failed round trip because of newline.
   (should
    (string= "Here is \[\[http://orgmode.org/\]\[Org's\]\] website"
