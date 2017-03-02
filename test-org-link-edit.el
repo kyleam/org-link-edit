@@ -1,6 +1,6 @@
 ;;; test-org-link-edit.el --- Tests for org-link-edit.el
 
-;; Copyright (C) 2015 Kyle Meyer <kyle@kyleam.com>
+;; Copyright (C) 2015-2017 Kyle Meyer <kyle@kyleam.com>
 
 ;; Author:  Kyle Meyer <kyle@kyleam.com>
 
