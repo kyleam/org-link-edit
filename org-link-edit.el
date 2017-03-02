@@ -84,7 +84,8 @@ The list includes
        ((looking-at org-bracket-link-regexp)
         (list (match-beginning 0)
               (match-end 0)
-              (org-link-unescape (match-string-no-properties 1))
+              (save-match-data
+                (org-link-unescape (match-string-no-properties 1)))
               (or (and (match-end 3)
                        (match-string-no-properties 3))
                   "")))
