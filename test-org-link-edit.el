@@ -513,6 +513,28 @@ website"
 
 ;;; Other
 
+(ert-deftest test-org-link-edit/on-link-p ()
+  "Test `org-link-edit--on-link-p'."
+  ;; On plain link
+  (should
+   (org-test-with-temp-text "http://orgmode.org/"
+     (org-link-edit--on-link-p)))
+  ;; On bracket link
+  (should
+   (org-test-with-temp-text "\[\[http://orgmode.org/\]\[org\]\]"
+     (org-link-edit--on-link-p)))
+  ;; Point beyond link, but technically still within link element.
+  (should
+   (org-test-with-temp-text "\[\[http://orgmode.org/\]\[org\]\] <point>"
+     (org-link-edit--on-link-p)))
+  ;; Not on a link
+  (should-not
+   (org-test-with-temp-text " \[\[http://orgmode.org/\]\[org\]\]"
+     (org-link-edit--on-link-p)))
+  (should-not
+   (org-test-with-temp-text "not a link"
+     (org-link-edit--on-link-p))))
+
 (ert-deftest test-org-link-edit/get-link-data ()
   "Test `org-link-edit--link-data'."
   ;; Plain link

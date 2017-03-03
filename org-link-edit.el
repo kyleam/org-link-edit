@@ -61,6 +61,14 @@
 (require 'org-element)
 (require 'cl-lib)
 
+(defun org-link-edit--on-link-p (&optional element)
+  (let ((el (or element (org-element-context))))
+    ;; Don't use `org-element-lineage' because it isn't available
+    ;; until Org version 8.3.
+    (while (and el (not (memq (car el) '(link))))
+      (setq el (org-element-property :parent el)))
+    (eq (car el) 'link)))
+
 (defun org-link-edit--link-data ()
   "Return list with information about the link at point.
 The list includes
@@ -69,11 +77,7 @@ The list includes
 - the link text
 - the link description (nil when on a plain link)"
   (let ((el (org-element-context)))
-    ;; Don't use `org-element-lineage' because it isn't available
-    ;; until Org version 8.3.
-    (while (and el (not (memq (car el) '(link))))
-      (setq el (org-element-property :parent el)))
-    (unless (eq (car el) 'link)
+    (unless (org-link-edit--on-link-p el)
       (user-error "Point is not on a link"))
     (save-excursion
       (goto-char (org-element-property :begin el))
