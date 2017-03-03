@@ -88,6 +88,15 @@ otherwise place the point at the beginning of the inserted text."
         "\[\[http://orgmode.org/\]\[Org's\]\] .?.?"
       (org-link-edit-forward-slurp)
       (buffer-string))))
+  ;; Slurping blob with point beyond link, but technically still
+  ;; within link element.
+  (should
+   (string=
+    "Org's \[\[http://orgmode.org/\]\[website  is\]\]"
+    (org-test-with-temp-text
+        "Org's \[\[http://orgmode.org/\]\[website\]\] <point> is"
+      (org-link-edit-forward-slurp)
+      (buffer-string))))
   ;; Slurp two blobs into plain link.
   (should
    (string=
@@ -188,6 +197,15 @@ website is"
         "Here ... <point>\[\[http://orgmode.org/\]\[Org's\]\] website."
       (org-link-edit-backward-slurp)
       (buffer-string))))
+  ;; Slurping blob with point beyond link, but technically still
+  ;; within link element.
+  (should
+   (string=
+    "\[\[http://orgmode.org/\]\[Org's website\]\]  is"
+    (org-test-with-temp-text
+        "Org's \[\[http://orgmode.org/\]\[website\]\] <point> is"
+      (org-link-edit-backward-slurp)
+      (buffer-string))))
   ;; Slurp two blobs into plain link.
   (should
    (string=
@@ -283,6 +301,15 @@ website is"
         "Org's <point>\[\[http://orgmode.org/\]\[website\]\] is"
       (org-link-edit-forward-barf)
       (buffer-string))))
+  ;; Barfing last blob with point beyond link, but technically still
+  ;; within link element.
+  (should
+   (string=
+    "Org's \[\[http://orgmode.org/\]\] website  is"
+    (org-test-with-temp-text
+        "Org's \[\[http://orgmode.org/\]\[website\]\] <point> is"
+      (org-link-edit-forward-barf)
+      (buffer-string))))
   ;; Barf last blob with puctuation.
   (should
    (string=
@@ -331,6 +358,15 @@ website is"
     "Org's website \[\[http://orgmode.org/\]\] is"
     (org-test-with-temp-text
         "Org's <point>\[\[http://orgmode.org/\]\[website\]\] is"
+      (org-link-edit-backward-barf)
+      (buffer-string))))
+  ;; Barfing last blob with point beyond link, but technically still
+  ;; within link element.
+  (should
+   (string=
+    "Org's website \[\[http://orgmode.org/\]\]  is"
+    (org-test-with-temp-text
+        "Org's \[\[http://orgmode.org/\]\[website\]\] <point> is"
       (org-link-edit-backward-barf)
       (buffer-string))))
   ;; Barf last blob with puctuation.

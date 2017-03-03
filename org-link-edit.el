@@ -273,14 +273,11 @@ If N is negative, barf leading blobs instead of trailing blobs."
       (pcase-let ((`(,new-desc . ,barfed) (org-link-edit--split-last-blobs
                                            desc n)))
         (unless new-desc (user-error "Not enough blobs in description"))
+        (goto-char beg)
         (delete-region beg end)
         (insert (org-make-link-string link new-desc))
-        (if (string= new-desc "")
-            ;; Two brackets are dropped when an empty description is
-            ;; passed to `org-make-link-string'.
-            (progn (goto-char (- end (+ 2 (length desc))))
-                   (setq barfed (concat " " barfed)))
-          (goto-char (- end (- (length desc) (length new-desc)))))
+        (when (string= new-desc "")
+          (setq barfed (concat " " barfed)))
         (insert barfed)
         (goto-char beg)
         barfed)))))
@@ -315,13 +312,13 @@ If N is negative, barf trailing blobs instead of leading blobs."
       (pcase-let ((`(,barfed . ,new-desc) (org-link-edit--split-first-blobs
                                            desc n)))
         (unless new-desc (user-error "Not enough blobs in description"))
+        (goto-char beg)
         (delete-region beg end)
         (insert (org-make-link-string link new-desc))
         (when (string= new-desc "")
           (setq barfed (concat barfed " ")))
         (goto-char beg)
         (insert barfed)
-        (goto-char (+ beg (length barfed)))
         barfed)))))
 
 (provide 'org-link-edit)
