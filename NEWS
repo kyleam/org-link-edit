@@ -3,3 +3,7 @@ Org Link Edit NEWS -- history of user-visible changes   -*- mode: org; -*-
 * master (unreleased)
 
 ** New features
+
+- New command ~org-link-edit-transport-next-link~ searches for the
+  next (or previous) link and moves it to point, using the word at
+  point or the selected region as the link's description.
