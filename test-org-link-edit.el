@@ -514,17 +514,17 @@ website"
 ;;; Other
 
 (ert-deftest test-org-link-edit/get-link-data ()
-  "Test `org-link-edit--get-link-data'."
+  "Test `org-link-edit--link-data'."
   ;; Plain link
   (cl-multiple-value-bind (beg end link desc)
       (org-test-with-temp-text "http://orgmode.org/"
-        (org-link-edit--get-link-data))
+        (org-link-edit--link-data))
     (should (string= link "http://orgmode.org/"))
     (should-not desc))
   ;; Bracket link
   (cl-multiple-value-bind (beg end link desc)
       (org-test-with-temp-text "\[\[http://orgmode.org/\]\[org\]\]"
-        (org-link-edit--get-link-data))
+        (org-link-edit--link-data))
     (should (string= link "http://orgmode.org/"))
     (should (string= desc "org"))))
 

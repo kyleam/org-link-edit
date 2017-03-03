@@ -61,7 +61,7 @@
 (require 'org-element)
 (require 'cl-lib)
 
-(defun org-link-edit--get-link-data ()
+(defun org-link-edit--link-data ()
   "Return list with information about the link at point.
 The list includes
 - the position at the start of the link
@@ -149,7 +149,7 @@ If N is negative, slurp leading blobs instead of trailing blobs."
    ((< n 0)
     (org-link-edit-backward-slurp (- n)))
    (t
-    (cl-multiple-value-bind (beg end link desc) (org-link-edit--get-link-data)
+    (cl-multiple-value-bind (beg end link desc) (org-link-edit--link-data)
       (goto-char (save-excursion
                    (goto-char end)
                    (or (org-link-edit--forward-blob n 'no-punctuation)
@@ -191,7 +191,7 @@ If N is negative, slurp trailing blobs instead of leading blobs."
    ((< n 0)
     (org-link-edit-forward-slurp (- n)))
    (t
-    (cl-multiple-value-bind (beg end link desc) (org-link-edit--get-link-data)
+    (cl-multiple-value-bind (beg end link desc) (org-link-edit--link-data)
       (goto-char (save-excursion
                    (goto-char beg)
                    (or (org-link-edit--forward-blob (- n))
@@ -267,7 +267,7 @@ If N is negative, barf leading blobs instead of trailing blobs."
    ((< n 0)
     (org-link-edit-backward-barf (- n)))
    (t
-    (cl-multiple-value-bind (beg end link desc) (org-link-edit--get-link-data)
+    (cl-multiple-value-bind (beg end link desc) (org-link-edit--link-data)
       (when (= (length desc) 0)
         (user-error "Link has no description"))
       (pcase-let ((`(,new-desc . ,barfed) (org-link-edit--split-last-blobs
@@ -306,7 +306,7 @@ If N is negative, barf trailing blobs instead of leading blobs."
    ((< n 0)
     (org-link-edit-forward-barf (- n)))
    (t
-    (cl-multiple-value-bind (beg end link desc) (org-link-edit--get-link-data)
+    (cl-multiple-value-bind (beg end link desc) (org-link-edit--link-data)
       (when (= (length desc) 0)
         (user-error "Link has no description"))
       (pcase-let ((`(,barfed . ,new-desc) (org-link-edit--split-first-blobs
