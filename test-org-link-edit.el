@@ -511,20 +511,86 @@ website"
               (buffer-string)))))
 
 
+;;; Transport
+
+(ert-deftest test-org-link-edit/transport-next-link ()
+  "Test `org-link-edit-transport-next-link'."
+  (should
+   (string= "Here is \[\[http://orgmode.org/\]\[Org's\]\] website "
+            (org-test-with-temp-text
+                "Here is <point>Org's website http://orgmode.org/"
+              (org-link-edit-transport-next-link)
+              (buffer-string))))
+  (should
+   (string= " Here is \[\[http://orgmode.org/\]\[Org's\]\] website"
+            (org-test-with-temp-text
+                "http://orgmode.org/ Here is <point>Org's website"
+              (org-link-edit-transport-next-link 'previous)
+              (buffer-string))))
+  (should
+   (string= "\[\[http://orgmode.org/\]\[Here is Org's\]\] website "
+            (org-test-with-temp-text
+                "Here is Org's<point> website http://orgmode.org/"
+              (org-link-edit-transport-next-link
+               nil (point-min) (point))
+              (buffer-string))))
+  (should
+   (string= " Here is \[\[http://orgmode.org/\]\[Org's website\]\]"
+            (org-test-with-temp-text
+                "http://orgmode.org/ Here is <point>Org's website"
+              (org-link-edit-transport-next-link
+               'previous (point) (point-max))
+              (buffer-string))))
+  (should-error
+   (org-test-with-temp-text
+       "Here is Org's website http://orgmode.org/<point>"
+     (org-link-edit-transport-next-link)
+     (buffer-string)))
+  (should-error
+   (org-test-with-temp-text
+       "Here is Org's website <point>http://orgmode.org/"
+     (org-link-edit-transport-next-link
+      nil (point-min) (point))
+     (buffer-string)))
+  )
+
+
 ;;; Other
 
+(ert-deftest test-org-link-edit/on-link-p ()
+  "Test `org-link-edit--on-link-p'."
+  ;; On plain link
+  (should
+   (org-test-with-temp-text "http://orgmode.org/"
+     (org-link-edit--on-link-p)))
+  ;; On bracket link
+  (should
+   (org-test-with-temp-text "\[\[http://orgmode.org/\]\[org\]\]"
+     (org-link-edit--on-link-p)))
+  ;; Point beyond link, but technically still within link element.
+  (should
+   (org-test-with-temp-text "\[\[http://orgmode.org/\]\[org\]\] <point>"
+     (org-link-edit--on-link-p)))
+  ;; Not on a link
+  (should-not
+   (org-test-with-temp-text " \[\[http://orgmode.org/\]\[org\]\]"
+     (org-link-edit--on-link-p)))
+  (should-not
+   (org-test-with-temp-text "not a link"
+     (org-link-edit--on-link-p))))
+
 (ert-deftest test-org-link-edit/get-link-data ()
-  "Test `org-link-edit--get-link-data'."
+  "Test `org-link-edit--link-data'."
   ;; Plain link
   (cl-multiple-value-bind (beg end link desc)
       (org-test-with-temp-text "http://orgmode.org/"
-        (org-link-edit--get-link-data))
+        (org-link-edit--link-data))
     (should (string= link "http://orgmode.org/"))
     (should-not desc))
   ;; Bracket link
   (cl-multiple-value-bind (beg end link desc)
       (org-test-with-temp-text "\[\[http://orgmode.org/\]\[org\]\]"
-        (org-link-edit--get-link-data))
+        (org-link-edit--link-data))
     (should (string= link "http://orgmode.org/"))
     (should (string= desc "org"))))
 

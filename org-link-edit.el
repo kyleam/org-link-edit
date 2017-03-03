@@ -26,8 +26,8 @@
 ;; Org Link Edit provides Paredit-inspired slurping and barfing
 ;; commands for Org link descriptions.
 ;;
-;; There are four commands, all which operate when point is on an Org
-;; link.
+;; There are four slurp and barf commands, all which operate when
+;; point is on an Org link.
 ;;
 ;; - org-link-edit-forward-slurp
 ;; - org-link-edit-backward-slurp
@@ -53,6 +53,11 @@
 ;;         ("i" org-link-edit-backward-barf "backward barf")
 ;;         ("q" nil "cancel")))
 ;;
+;; In addition to the slurp and barf commands, the command
+;; `org-link-edit-transport-next-link' searches for the next (or
+;; previous) link and moves it to point, using the word at point or
+;; the selected region as the link's description.
+;;
 ;; [1] https://github.com/abo-abo/hydra
 
 ;;; Code:
@@ -61,7 +66,15 @@
 (require 'org-element)
 (require 'cl-lib)
 
-(defun org-link-edit--get-link-data ()
+(defun org-link-edit--on-link-p (&optional element)
+  (let ((el (or element (org-element-context))))
+    ;; Don't use `org-element-lineage' because it isn't available
+    ;; until Org version 8.3.
+    (while (and el (not (memq (car el) '(link))))
+      (setq el (org-element-property :parent el)))
+    (eq (car el) 'link)))
+
+(defun org-link-edit--link-data ()
   "Return list with information about the link at point.
 The list includes
 - the position at the start of the link
@@ -69,11 +82,7 @@ The list includes
 - the link text
 - the link description (nil when on a plain link)"
   (let ((el (org-element-context)))
-    ;; Don't use `org-element-lineage' because it isn't available
-    ;; until Org version 8.3.
-    (while (and el (not (memq (car el) '(link))))
-      (setq el (org-element-property :parent el)))
-    (unless (eq (car el) 'link)
+    (unless (org-link-edit--on-link-p el)
       (user-error "Point is not on a link"))
     (save-excursion
       (goto-char (org-element-property :begin el))
@@ -149,7 +158,7 @@ If N is negative, slurp leading blobs instead of trailing blobs."
    ((< n 0)
     (org-link-edit-backward-slurp (- n)))
    (t
-    (cl-multiple-value-bind (beg end link desc) (org-link-edit--get-link-data)
+    (cl-multiple-value-bind (beg end link desc) (org-link-edit--link-data)
       (goto-char (save-excursion
                    (goto-char end)
                    (or (org-link-edit--forward-blob n 'no-punctuation)
@@ -191,7 +200,7 @@ If N is negative, slurp trailing blobs instead of leading blobs."
    ((< n 0)
     (org-link-edit-forward-slurp (- n)))
    (t
-    (cl-multiple-value-bind (beg end link desc) (org-link-edit--get-link-data)
+    (cl-multiple-value-bind (beg end link desc) (org-link-edit--link-data)
       (goto-char (save-excursion
                    (goto-char beg)
                    (or (org-link-edit--forward-blob (- n))
@@ -267,7 +276,7 @@ If N is negative, barf leading blobs instead of trailing blobs."
    ((< n 0)
     (org-link-edit-backward-barf (- n)))
    (t
-    (cl-multiple-value-bind (beg end link desc) (org-link-edit--get-link-data)
+    (cl-multiple-value-bind (beg end link desc) (org-link-edit--link-data)
       (when (= (length desc) 0)
         (user-error "Link has no description"))
       (pcase-let ((`(,new-desc . ,barfed) (org-link-edit--split-last-blobs
@@ -306,7 +315,7 @@ If N is negative, barf trailing blobs instead of leading blobs."
    ((< n 0)
     (org-link-edit-forward-barf (- n)))
    (t
-    (cl-multiple-value-bind (beg end link desc) (org-link-edit--get-link-data)
+    (cl-multiple-value-bind (beg end link desc) (org-link-edit--link-data)
       (when (= (length desc) 0)
         (user-error "Link has no description"))
       (pcase-let ((`(,barfed . ,new-desc) (org-link-edit--split-first-blobs
@@ -320,6 +329,61 @@ If N is negative, barf trailing blobs instead of leading blobs."
         (goto-char beg)
         (insert barfed)
         barfed)))))
+
+(defun org-link-edit--next-link-data (&optional previous)
+  (save-excursion
+    (if (funcall (if previous #'re-search-backward #'re-search-forward)
+                 org-any-link-re nil t)
+        (org-link-edit--link-data)
+      (user-error "No %s link found" (if previous "previous" "next")))))
+
+;;;###autoload
+(defun org-link-edit-transport-next-link (&optional previous beg end)
+  "Move the next link to point.
+
+If the region is active, use the selected text as the link's
+description.  Otherwise, use the word at point.
+
+With prefix argument PREVIOUS, move the previous link instead of
+the next link.
+
+Non-interactively, use the text between BEG and END as the
+description, moving the next (or previous) link relative BEG and
+END."
+  (interactive (cons current-prefix-arg
+                     (and (use-region-p)
+                          (list (region-beginning) (region-end)))))
+  (let ((pt (point))
+        (desc-bounds (cond
+                      ((and beg end)
+                       (cons (progn (goto-char beg)
+                                    (point-marker))
+                             (progn (goto-char end)
+                                    (point-marker))))
+                      ((not (looking-at-p "\\s-"))
+                       (progn (skip-syntax-backward "w")
+                              (let ((beg (point-marker)))
+                                (skip-syntax-forward "w")
+                                (cons beg (point-marker))))))))
+    (when (or (and desc-bounds
+                   (or (progn (goto-char (car desc-bounds))
+                              (org-link-edit--on-link-p))
+                       (progn (goto-char (cdr desc-bounds))
+                              (org-link-edit--on-link-p))))
+              (progn (goto-char pt)
+                     (org-link-edit--on-link-p)))
+      (user-error "Cannot transport next link with point on a link"))
+    (goto-char (car desc-bounds))
+    (cl-multiple-value-bind (link-beg link-end link desc)
+        (org-link-edit--next-link-data previous)
+      (unless (or (not desc-bounds) (= (length desc) 0))
+        (user-error "Link already has a description"))
+      (delete-region link-beg link-end)
+      (insert (org-make-link-string
+               link
+               (and desc-bounds
+                    (delete-and-extract-region (car desc-bounds)
+                                               (cdr desc-bounds))))))))
 
 (provide 'org-link-edit)
 ;;; org-link-edit.el ends here
