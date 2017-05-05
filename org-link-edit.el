@@ -381,9 +381,10 @@ END."
       (delete-region link-beg link-end)
       (insert (org-make-link-string
                link
-               (and desc-bounds
-                    (delete-and-extract-region (car desc-bounds)
-                                               (cdr desc-bounds))))))))
+               (if desc-bounds
+                   (delete-and-extract-region (car desc-bounds)
+                                              (cdr desc-bounds))
+                 orig-desc))))))
 
 (provide 'org-link-edit)
 ;;; org-link-edit.el ends here
