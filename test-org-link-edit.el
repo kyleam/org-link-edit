@@ -558,6 +558,13 @@ website"
      (org-link-edit-transport-next-link
       nil (point-min) (point))
      (buffer-string))
+   :type 'user-error)
+  ;; Fail if link already has a description.
+  (should-error
+   (org-test-with-temp-text
+       "Here is <point>Org's website \[\[http://orgmode.org/\]\[descrption\]\]"
+     (org-link-edit-transport-next-link)
+     (buffer-string))
    :type 'user-error))
 
 
