@@ -373,7 +373,7 @@ END."
               (progn (goto-char pt)
                      (org-link-edit--on-link-p)))
       (user-error "Cannot transport next link with point on a link"))
-    (goto-char (car desc-bounds))
+    (goto-char (or (car desc-bounds) pt))
     (cl-multiple-value-bind (link-beg link-end link desc)
         (org-link-edit--next-link-data previous)
       (unless (or (not desc-bounds) (= (length desc) 0))
