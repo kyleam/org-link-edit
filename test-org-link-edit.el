@@ -153,7 +153,7 @@ website is"
        "\[\[http://orgmode.org/\]\[Org's\]\] website is"
      (org-link-edit-forward-slurp 3)
      (buffer-string))
-   :type (list 'user-error)))
+   :type 'user-error))
 
 (ert-deftest test-org-link-edit/backward-slurp ()
   "Test `org-link-edit-backward-slurp'."
@@ -262,7 +262,7 @@ website is"
        "Here is <point>\[\[http://orgmode.org/\]\[Org's\]\] website"
      (org-link-edit-backward-slurp 3)
      (buffer-string))
-   :type (list 'user-error)))
+   :type 'user-error))
 
 (ert-deftest test-org-link-edit/slurp-negative-argument ()
   "Test `org-link-edit-forward-slurp' and
@@ -348,7 +348,7 @@ website is"
        "Org's <point>\[\[http://orgmode.org/\]\[website is\]\]"
      (org-link-edit-forward-barf 3)
      (buffer-string))
-   :type (list 'user-error)))
+   :type 'user-error))
 
 (ert-deftest test-org-link-edit/backward-barf ()
   "Test `org-link-edit-backward-barf'."
@@ -415,7 +415,7 @@ website is"
        "Org's <point>\[\[http://orgmode.org/\]\[website is\]\]"
      (org-link-edit-backward-barf 3)
      (buffer-string))
-   :type (list 'user-error)))
+   :type 'user-error))
 
 (ert-deftest test-org-link-edit/barf-negative-argument ()
   "Test `org-link-edit-forward-barf' and
