@@ -515,18 +515,21 @@ website"
 
 (ert-deftest test-org-link-edit/transport-next-link ()
   "Test `org-link-edit-transport-next-link'."
+  ;; Transport next link to word at point.
   (should
    (string= "Here is \[\[http://orgmode.org/\]\[Org's\]\] website "
             (org-test-with-temp-text
                 "Here is <point>Org's website http://orgmode.org/"
               (org-link-edit-transport-next-link)
               (buffer-string))))
+  ;; Transport previous link to word at point.
   (should
    (string= " Here is \[\[http://orgmode.org/\]\[Org's\]\] website"
             (org-test-with-temp-text
                 "http://orgmode.org/ Here is <point>Org's website"
               (org-link-edit-transport-next-link 'previous)
               (buffer-string))))
+  ;; Transport next link to the active region.
   (should
    (string= "\[\[http://orgmode.org/\]\[Here is Org's\]\] website "
             (org-test-with-temp-text
@@ -534,6 +537,7 @@ website"
               (org-link-edit-transport-next-link
                nil (point-min) (point))
               (buffer-string))))
+  ;; Transport previous link to the active region.
   (should
    (string= " Here is \[\[http://orgmode.org/\]\[Org's website\]\]"
             (org-test-with-temp-text
@@ -541,6 +545,7 @@ website"
               (org-link-edit-transport-next-link
                'previous (point) (point-max))
               (buffer-string))))
+  ;; Fail if point is on a link.
   (should-error
    (org-test-with-temp-text
        "Here is Org's website http://orgmode.org/<point>"
