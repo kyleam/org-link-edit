@@ -551,8 +551,7 @@ website"
        "Here is Org's website <point>http://orgmode.org/"
      (org-link-edit-transport-next-link
       nil (point-min) (point))
-     (buffer-string)))
-  )
+     (buffer-string))))
 
 
 ;;; Other
