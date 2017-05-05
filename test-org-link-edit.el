@@ -550,13 +550,15 @@ website"
    (org-test-with-temp-text
        "Here is Org's website http://orgmode.org/<point>"
      (org-link-edit-transport-next-link)
-     (buffer-string)))
+     (buffer-string))
+   :type 'user-error)
   (should-error
    (org-test-with-temp-text
        "Here is Org's website <point>http://orgmode.org/"
      (org-link-edit-transport-next-link
       nil (point-min) (point))
-     (buffer-string))))
+     (buffer-string))
+   :type 'user-error))
 
 
 ;;; Other
