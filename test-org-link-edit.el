@@ -545,6 +545,21 @@ website"
               (org-link-edit-transport-next-link
                'previous (point) (point-max))
               (buffer-string))))
+  ;; Transport next link with point on whitespace.
+  (should
+   (string= "Here is\[\[http://orgmode.org/\]\] Org's website "
+            (org-test-with-temp-text
+                "Here is<point> Org's website http://orgmode.org/"
+              (org-link-edit-transport-next-link)
+              (buffer-string))))
+  ;; Transported links are allow to have an existing description when
+  ;; point is on whitespace.
+  (should
+   (string= "Here is\[\[http://orgmode.org/\]\[descrption\]\] Org's website "
+            (org-test-with-temp-text
+                "Here is<point> Org's website \[\[http://orgmode.org/\]\[descrption\]\]"
+              (org-link-edit-transport-next-link)
+              (buffer-string))))
   ;; Fail if point is on a link.
   (should-error
    (org-test-with-temp-text

@@ -373,17 +373,18 @@ END."
               (progn (goto-char pt)
                      (org-link-edit--on-link-p)))
       (user-error "Cannot transport next link with point on a link"))
-    (goto-char (car desc-bounds))
-    (cl-multiple-value-bind (link-beg link-end link desc)
+    (goto-char (or (car desc-bounds) pt))
+    (cl-multiple-value-bind (link-beg link-end link orig-desc)
         (org-link-edit--next-link-data previous)
-      (unless (or (not desc-bounds) (= (length desc) 0))
+      (unless (or (not desc-bounds) (= (length orig-desc) 0))
         (user-error "Link already has a description"))
       (delete-region link-beg link-end)
       (insert (org-make-link-string
                link
-               (and desc-bounds
-                    (delete-and-extract-region (car desc-bounds)
-                                               (cdr desc-bounds))))))))
+               (if desc-bounds
+                   (delete-and-extract-region (car desc-bounds)
+                                              (cdr desc-bounds))
+                 orig-desc))))))
 
 (provide 'org-link-edit)
 ;;; org-link-edit.el ends here
